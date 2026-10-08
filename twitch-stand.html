@@ -371,6 +371,14 @@
   @keyframes boardTicker { 0%, 12% { transform: translateX(0); } 88%, 100% { transform: translateX(var(--ticker-distance)); } }
   .person .msg { display: none; }
 
+  /* ===== Быстрые темы для сравнения ===== */
+  body.theme-retro #messageBoard { background: #172536; border-color: #d6a83e; box-shadow: 0 3px 0 #080b10, inset 0 0 0 1px #f0ce67; }
+  body.theme-retro #messageBoard .board-label { color: #f4d36e; border-color: #d6a83e; }
+  body.theme-retro #stadiumSvg { filter: sepia(.2) saturate(1.25) hue-rotate(-8deg); }
+  body.theme-night #messageBoard { background: #111a2b; border-color: #38bdf8; box-shadow: 0 3px 0 #070b16, inset 0 0 0 1px #b54cff; }
+  body.theme-night #messageBoard .board-label { color: #62e7ff; border-color: #347ca8; }
+  body.theme-night #stadiumSvg { filter: saturate(.8) hue-rotate(12deg) brightness(.9); }
+
   /* ===== Dev-панель ===== */
   #devPanel {
     position: absolute;
@@ -423,6 +431,8 @@
     <button onclick="devConfetti()">Конфети</button>
     <button onclick="devToggleTime()">Время ×10</button>
     <button onclick="devClear()">Очистить</button>
+    <button onclick="devTheme('retro')">Ретро</button>
+    <button onclick="devTheme('night')">Ночь</button>
   </div>
   <div id="devStats"></div>
   <div id="devLog"></div>
@@ -995,6 +1005,12 @@ function devConfetti() { spawnConfetti(120); }
 function devToggleTime() {
   timeScale = timeScale === 1 ? 10 : 1;
   devTimeEl.textContent = '×' + timeScale;
+}
+function devTheme(name) {
+  document.body.classList.remove('theme-retro', 'theme-night');
+  if (name === 'retro') document.body.classList.add('theme-retro');
+  if (name === 'night') document.body.classList.add('theme-night');
+  log(`Тема: ${name}`);
 }
 function devClear() {
   for (const nick of [...persons.keys()]) removePerson(nick);

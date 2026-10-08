@@ -628,7 +628,9 @@ function drawStadium() {
   // Поднятый слой городского фона перекрывает ночное небо.
   svgEl.append(el('rect', { x:0, y:0, width:W, height:H * 0.42 - 80, fill:PALETTE.tierRear[1], opacity:0.92 }));
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
-  const skyline = el('g', { fill:PALETTE.tierRear[0], opacity:0.9 });
+  // Сплошное основание города соединяет здания с задним ярусом.
+  svgEl.append(el('rect', { x:0, y:rearTopY-10, width:W, height:12, fill:PALETTE.tierRear[0] }));
+  const skyline = el('g', { fill:PALETTE.tierRear[0] });
   // Три отдельные группы на адаптивных позициях, ниже облаков.
   for (const center of [W * 0.16, W * 0.5, W * 0.84]) {
     for (const [offset, height, width] of [[-45,24,26],[-12,40,22],[17,28,28]]) {
@@ -653,11 +655,11 @@ function drawStadium() {
   const flagGroup = el('g');
   for (const fx of [W * 0.12, W * 0.88]) {
     flagGroup.append(el('line', {
-      x1: fx, y1: 105, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
+      x1: fx, y1: 205, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
       stroke: PALETTE.flagPole, 'stroke-width': 1
     }));
     flagGroup.append(el('polygon', { class:'flag-pixel',
-      points: `${fx},107 ${fx + 30},113 ${fx},119`,
+      points: `${fx},207 ${fx + 30},213 ${fx},219`,
       fill: PALETTE.flag
     }));
   }

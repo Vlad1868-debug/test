@@ -393,7 +393,7 @@
 
   /* ===== Табло в стиле футбольного LED-экрана ===== */
   #messageBoard {
-    top: 205px; width: min(480px, calc(100% - 24px)); height: 52px;
+    top: 205px; width: min(580px, calc(100% - 24px)); height: 52px;
     padding: 5px; display:flex; align-items:stretch; gap:5px;
     background:#25282c; border:3px solid #0e1013; border-radius:10px;
     box-shadow: 0 0 0 2px #d9dde0, 0 0 0 5px #11151a, 0 5px 0 #080a0c;
@@ -628,7 +628,7 @@ function drawStadium() {
   // Ровная поднятая граница городского фона.
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
   const skyline = el('g', { fill:PALETTE.tierRear[1], opacity:0.9 });
-  const buildings = [[0,26,28],[34,18,20],[60,32,24],[96,14,18],[126,24,30],[164,17,22],[198,29,26],[238,20,21],[274,34,30],[316,16,18],[350,25,24]];
+  const buildings = [[0,22,30],[38,16,22],[66,27,25], [150,20,24],[181,31,28],[216,17,20], [300,24,27],[336,15,22],[366,29,25]];
   for (const [x,h,w] of buildings) {
     skyline.append(el('rect',{x:x+W*0.2,y:H*0.42-80-h,width:w,height:h}));
     skyline.append(el('rect',{x:x+W*0.2+5,y:H*0.42-80-h+6,width:3,height:3,fill:PALETTE.wallTop,opacity:.45}));
@@ -722,7 +722,7 @@ function drawStadium() {
       svgEl.append(el('rect',{x:cx-2,y:cy-2,width:1.5,height:3,fill:'#7547c7'}));
       svgEl.append(el('rect',{x:cx+1,y:cy-2,width:1.5,height:3,fill:'#7547c7'}));
     }
-    const text=el('text',{x:bx+panelW/2+12,y:bbY+bbH/2+4,'font-family':'Courier New, monospace','font-size':Math.min(13,bbH*.58),fill:PALETTE.billboardText,'text-anchor':'middle','font-weight':'700'});
+    const text=el('text',{x:bx+panelW/2+12,y:bbY+bbH/2+4,'font-family':'Courier New, monospace','font-size':Math.min(14,bbH*.64),fill:PALETTE.billboardText,'text-anchor':'middle','font-weight':'700','paint-order':'stroke','stroke':PALETTE.billboardStroke,'stroke-width':0.7});
     text.textContent='NONSTAZY'; svgEl.append(text);
   }
 }

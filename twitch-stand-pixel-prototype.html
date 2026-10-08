@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Twitch Трибуна — Pixel Prototype</title>
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    image-rendering: pixelated;
+  }
+
+  #stadium {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 340px;
+    overflow: hidden;
+  }
+  #stadiumSvg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  #stage {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ===== Слой конфети ===== */
+  #confettiLayer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    overflow: hidden;
+  }
+  .confetti {
+    position: absolute;
+    top: -20px;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.6; }
+  }
+
+  /* ===== Человечек ===== */
+  .person {
+    position: absolute;
+    width: 32px;
+    height: 72px;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.45s ease, left 1.8s cubic-bezier(.22,.7,.25,1);
+    will-change: left, opacity;
+  }
+  .person.alive { opacity: 1; }
+  .person.entering { left: -45px !important; opacity: 0; }
+  .person.walking { animation: walkBody 0.28s steps(2, end) infinite; }
+  .person.dying { opacity: 0; left: -55px !important; transition: opacity 0.35s ease, left 1.1s ease-in; }
+  @keyframes walkBody { 0%, 100% { margin-top: 0; } 50% { margin-top: -2px; } }
+
+  /* Обёртка для прыжков (translateY) */
+  .person-bounce {
+    position: absolute;
+    inset: 0;
+  }
+  .person-bounce.jumping {
+    animation: jumpOnce 0.8s ease-out;
+  }
+  .person-bounce.celebrating {
+    animation: jumpThree 1.8s ease-in-out;
+  }
+  @keyframes jumpOnce {
+    0%   { transform: translateY(0); }
+    40%  { transform: translateY(-22px); }
+    70%  { transform: translateY(0); }
+    85%  { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes jumpThree {
+    0%   { transform: translateY(0); }
+    12%  { transform: translateY(-22px); }
+    24%  { transform: translateY(0); }
+    36%  { transform: translateY(-22px); }
+    48%  { transform: translateY(0); }
+    60%  { transform: translateY(-22px); }
+    72%  { transform: translateY(0); }
+    100% { transform: translateY(0); }
+  }
+
+  /* Обёртка для покачивания (rotate) */
+  .person-inner {
+    position: absolute;
+    inset: 0;
+    transform-origin: bottom center;
+    animation: sway 3s ease-in-out infinite;
+    animation-delay: var(--sway-delay, 0s);
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-1.5deg); }
+    50%      { transform: rotate(1.5deg); }
+  }
+  /* Во время прыжка покачивание отключаем */
+  .person-bounce.jumping .person-inner,
+  .person-bounce.celebrating .person-inner {
+    animation: none;
+    transform: rotate(0);
+  }
+
+  .person .head,
+  .person .body,
+  .person .arm-left,
+  .person .arm-right,
+  .person .leg-left,
+  .person .leg-right {
+    position: absolute;
+    background: var(--c);
+    transition: transform 0.2s ease;
+  }
+  .person .head {
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 16px; height: 16px;
+    border-radius: 2px;
+    border: 2px solid #11131a;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  }
+  .person .body {
+    top: 16px; left: 50%;
+    transform: translateX(-50%);
+    width: 6px; height: 24px;
+    border: 2px solid #11131a;
+  }
+  .person .arm-left, .person .arm-right {
+    top: 22px;
+    width: 4px; height: 18px;
+    border: 1px solid #11131a;
+  }
+  .person .arm-left  { left: 50%; transform: translateX(-50%) rotate(35deg);  transform-origin: top; }
+  .person .arm-right { left: 50%; transform: translateX(-50%) rotate(-35deg); transform-origin: top; }
+  .person .leg-left, .person .leg-right {
+    top: 42px;
+    width: 4px; height: 22px;
+    border: 1px solid #11131a;
+  }
+  .person .leg-left  { left: 50%; transform: translateX(-50%) rotate(15deg);  transform-origin: top; }
+  .person .leg-right { left: 50%; transform: translateX(-50%) rotate(-15deg); transform-origin: top; }
+
+  /* Руки вверх во время прыжка/празднования */
+  .person-bounce.jumping .arm-left,
+  .person-bounce.celebrating .arm-left {
+    transform: translateX(-50%) rotate(130deg);
+  }
+  .person-bounce.jumping .arm-right,
+  .person-bounce.celebrating .arm-right {
+    transform: translateX(-50%) rotate(-130deg);
+  }
+
+  .person .nick {
+    position: absolute;
+    top: -20px; left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 12px;
+    color: #fff;
+    text-shadow: 0 0 3px #000, 0 0 3px #000;
+  }
+
+  /* ===== Пузырь сообщения ===== */
+  .person .msg {
+    position: absolute;
+    top: 0; left: 36px;
+    max-width: 200px;
+    padding: 5px 10px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font-size: 12px;
+    border-radius: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .person .msg::after {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 6px solid rgba(0,0,0,0.8);
+  }
+  .person .msg.show { opacity: 1; }
+
+  /* ===== Pixel-art прототип ===== */
+  .person .head, .person .body, .person .arm-left, .person .arm-right,
+  .person .leg-left, .person .leg-right {
+    border-radius: 0;
+    image-rendering: pixelated;
+  }
+  .person .nick {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    text-shadow: 1px 1px 0 #000;
+  }
+
+  /* ===== Dev-панель ===== */
+  #devPanel {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: rgba(0,0,0,0.85);
+    color: #0f0;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    z-index: 999;
+    display: none;
+    max-width: 320px;
+  }
+  #devPanel.on { display: block; }
+  #devPanel button {
+    background: #222; color: #0f0;
+    border: 1px solid #0f0;
+    padding: 3px 6px; margin: 2px;
+    cursor: pointer; font-family: monospace; font-size: 11px;
+  }
+  #devPanel button:hover { background: #0f0; color: #000; }
+  #devLog {
+    margin-top: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+    border-top: 1px solid #333;
+    padding-top: 4px;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="stadium">
+  <svg id="stadiumSvg"></svg>
+  <div id="stage"></div>
+</div>
+
+<div id="confettiLayer"></div>
+
+<div id="devPanel">
+  <div><b>DEV MODE</b> <span id="devTime">×1</span></div>
+  <div>
+    <button onclick="devAddPerson()">+ Зритель</button>
+    <button onclick="devSpam()">Спам</button>
+    <button onclick="devCelebrate()">Праздник</button>
+    <button onclick="devConfetti()">Конфети</button>
+    <button onclick="devToggleTime()">Время ×10</button>
+    <button onclick="devClear()">Очистить</button>
+  </div>
+  <div id="devStats"></div>
+  <div id="devLog"></div>
+</div>
+
+<script>
+/* ============================ НАСТРОЙКИ ============================ */
+const CONFIG = {
+  channel: 'yarrch',
+  keyword: 'трибуна',
+
+  ttl: 30 * 1000,
+  fadeOut: 1000,
+
+  cols: 5,
+  rows: 3,
+  stadiumHeight: 340,
+  rowYs: [70, 135, 200],
+
+  msgDuration: 6000,
+  antispamMs: 3000,
+  queueMax: 3,
+
+  maxPersons: 15,
+
+  banners: ['NONSTAZY', 'FOOTBALL', 'STREAM', 'LIVE'],
+
+  // Слова для празднования (прыжки)
+  celebrateWords: ['ура', 'гол', 'победа'],
+};
+
+const PALETTE = {
+  sky1: '#0a0a0c',
+  sky2: '#16161a',
+  tierFront: ['#28282e', '#22222a'],
+  tierMid:   ['#22222a', '#1c1c22'],
+  tierRear:  ['#1c1c22', '#141418'],
+  seatFront: '#34343e',
+  seatMid:   '#2c2c34',
+  seatRear:  '#242429',
+  seatStroke: 'rgba(0,0,0,0.35)',
+  wallGradTop: '#3a3a42',
+  wallGradBot: '#26262c',
+  wallTop: '#4a4a52',
+  billboard: '#1c1c22',
+  billboardStroke: '#333',
+  billboardText: '#666',
+  flag: '#2a2a32',
+  flagPole: '#3a3a44',
+};
+/* =================================================================== */
+
+const DEV = new URLSearchParams(location.search).get('dev') === '1';
+let timeScale = 1;
+
+const svgEl = document.getElementById('stadiumSvg');
+const stageEl = document.getElementById('stage');
+const confettiLayer = document.getElementById('confettiLayer');
+const devPanel = document.getElementById('devPanel');
+const devLogEl = document.getElementById('devLog');
+const devStatsEl = document.getElementById('devStats');
+const devTimeEl = document.getElementById('devTime');
+if (DEV) devPanel.classList.add('on');
+
+const persons = new Map();
+const slots = [];
+
+Object.defineProperty(CONFIG, 'slotWidth', {
+  get() {
+    return Math.min(120, (window.innerWidth - 240) / CONFIG.cols);
+  }
+});
+
+/* ============== СЛОТЫ ============== */
+function computeSlots() {
+  slots.length = 0;
+  const W = window.innerWidth;
+  const totalW = CONFIG.cols * CONFIG.slotWidth;
+  const startX = (W - totalW) / 2 + CONFIG.slotWidth / 2;
+
+  for (let r = 0; r < CONFIG.rows; r++) {
+    const y = CONFIG.rowYs[r];
+    const shift = (r % 2 === 0) ? 0 : CONFIG.slotWidth / 2;
+
+    for (let c = 0; c < CONFIG.cols; c++) {
+      const x = startX + c * CONFIG.slotWidth + shift;
+      slots.push({ x, y, taken: null, row: r, col: c });
+    }
+  }
+}
+
+/* ============== РИСОВАНИЕ ============== */
+function drawStadium() {
+  const W = window.innerWidth;
+  const H = CONFIG.stadiumHeight;
+  svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svgEl.setAttribute('preserveAspectRatio', 'none');
+  svgEl.innerHTML = '';
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs = {}) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+  const grad = (id, stops, x2 = '0', y2 = '1') => {
+    const g = el('linearGradient', { id, x1: '0', y1: '0', x2, y2 });
+    for (const s of stops) g.append(el('stop', { offset: s[0], 'stop-color': s[1] }));
+    return g;
+  };
+
+  const defs = el('defs');
+  defs.append(grad('skyGrad', [['0%', PALETTE.sky1], ['100%', PALETTE.sky2]]));
+  defs.append(grad('tierFront', [['0%', PALETTE.tierFront[0]], ['100%', PALETTE.tierFront[1]]]));
+  defs.append(grad('tierMid',   [['0%', PALETTE.tierMid[0]],   ['100%', PALETTE.tierMid[1]]]));
+  defs.append(grad('tierRear',  [['0%', PALETTE.tierRear[0]],  ['100%', PALETTE.tierRear[1]]]));
+  defs.append(grad('wallGrad',  [['0%', PALETTE.wallGradTop],  ['100%', PALETTE.wallGradBot]]));
+
+  const glow = el('radialGradient', { id: 'glow', cx: '0.5', cy: '0', r: '0.7' });
+  glow.append(
+    el('stop', { offset: '0%',   'stop-color': '#5a5a70', 'stop-opacity': '0.22' }),
+    el('stop', { offset: '100%', 'stop-color': '#000',     'stop-opacity': '0' })
+  );
+  defs.append(glow);
+
+  svgEl.append(defs);
+
+  const WALL_H = 55;
+  const TIER_H = 65;
+  const wallTopY  = H - WALL_H;
+  const frontTopY = wallTopY - TIER_H;
+  const midTopY   = frontTopY - TIER_H;
+  const rearTopY  = midTopY - TIER_H;
+
+  const I0 = 0, I1 = 30, I2 = 60, I3 = 90;
+
+  /* Небо */
+  svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H, fill: 'url(#skyGrad)' }));
+  svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H * 0.4, fill: 'url(#glow)' }));
+
+  /* Флаги — мачты доходят до верхнего яруса */
+  const flagGroup = el('g');
+  for (const fx of [W * 0.12, W * 0.5, W * 0.88]) {
+    flagGroup.append(el('line', {
+      x1: fx, y1: 18, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
+      stroke: PALETTE.flagPole, 'stroke-width': 1
+    }));
+    flagGroup.append(el('polygon', {
+      points: `${fx},20 ${fx + 30},26 ${fx},32`,
+      fill: PALETTE.flag
+    }));
+  }
+  svgEl.append(flagGroup);
+
+  /* Ярусы */
+  svgEl.append(el('polygon', {
+    points: `${I3},${rearTopY} ${W - I3},${rearTopY} ${W - I2},${midTopY} ${I2},${midTopY}`,
+    fill: 'url(#tierRear)'
+  }));
+  svgEl.append(el('polygon', {
+    points: `${I2},${midTopY} ${W - I2},${midTopY} ${W - I1},${frontTopY} ${I1},${frontTopY}`,
+    fill: 'url(#tierMid)'
+  }));
+  svgEl.append(el('polygon', {
+    points: `${I1},${frontTopY} ${W - I1},${frontTopY} ${W - I0},${wallTopY} ${I0},${wallTopY}`,
+    fill: 'url(#tierFront)'
+  }));
+
+  svgEl.append(el('line', {
+    x1: I1, y1: frontTopY, x2: W - I1, y2: frontTopY,
+    stroke: 'rgba(255,255,255,0.07)', 'stroke-width': 1
+  }));
+  svgEl.append(el('line', {
+    x1: I2, y1: midTopY, x2: W - I2, y2: midTopY,
+    stroke: 'rgba(255,255,255,0.05)', 'stroke-width': 1
+  }));
+
+  /* Сиденья */
+  const totalW = CONFIG.cols * CONFIG.slotWidth;
+  const seatStartX = (W - totalW) / 2;
+  const seatColors = [PALETTE.seatFront, PALETTE.seatMid, PALETTE.seatRear];
+
+  for (let r = 0; r < CONFIG.rows; r++) {
+    const shift = (r % 2 === 0) ? 0 : CONFIG.slotWidth / 2;
+    const seatW = CONFIG.slotWidth * 0.5;
+    const seatH = 8;
+    const seatY = H - CONFIG.rowYs[r] - seatH + 3;
+
+    for (let c = 0; c < CONFIG.cols; c++) {
+      const seatX = seatStartX + c * CONFIG.slotWidth + shift + (CONFIG.slotWidth - seatW) / 2;
+      svgEl.append(el('rect', {
+        x: seatX, y: seatY, width: seatW, height: seatH, rx: 2,
+        fill: seatColors[r], stroke: PALETTE.seatStroke,
+        'stroke-width': 1, opacity: 0.85
+      }));
+    }
+  }
+
+  /* Передняя стенка */
+  svgEl.append(el('rect', {
+    x: 0, y: wallTopY, width: W, height: WALL_H, fill: 'url(#wallGrad)'
+  }));
+  svgEl.append(el('rect', {
+    x: 0, y: wallTopY, width: W, height: 3, fill: PALETTE.wallTop
+  }));
+
+  /* Баннеры */
+  const bbY = wallTopY + 10;
+  const bbH = WALL_H - 18;
+  const count = CONFIG.banners.length;
+  const bbGap = 20;
+  const bbW = (W - 40 - bbGap * (count - 1)) / count;
+  const bbStart = 20;
+
+  for (let i = 0; i < count; i++) {
+    const bx = bbStart + i * (bbW + bbGap);
+    svgEl.append(el('rect', {
+      x: bx, y: bbY, width: bbW, height: bbH,
+      fill: PALETTE.billboard, stroke: PALETTE.billboardStroke,
+      'stroke-width': 1, rx: 2
+    }));
+    const text = el('text', {
+      x: bx + bbW / 2, y: bbY + bbH / 2 + 4,
+      'font-family': 'Arial',
+      'font-size': Math.min(12, bbH * 0.55),
+      fill: PALETTE.billboardText,
+      'text-anchor': 'middle'
+    });
+    text.textContent = CONFIG.banners[i];
+    svgEl.append(text);
+  }
+}
+
+/* ============== ПЕРЕСБОРКА ============== */
+function rebuildAll() {
+  computeSlots();
+  drawStadium();
+  const nicks = [...persons.keys()];
+  for (const nick of nicks) {
+    const p = persons.get(nick);
+    if (p) p.el.remove();
+  }
+  persons.clear();
+  for (const nick of nicks) createPerson(nick);
+}
+rebuildAll();
+window.addEventListener('resize', rebuildAll);
+
+/* ---- Утилиты ---- */
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[c]);
+}
+function hashHue(nick) {
+  let h = 0;
+  for (let i = 0; i < nick.length; i++) h = (h * 31 + nick.charCodeAt(i)) | 0;
+  return Math.abs(h) % 360;
+}
+function log(msg) {
+  if (!DEV) return;
+  const t = new Date().toLocaleTimeString();
+  devLogEl.textContent = `[${t}] ${msg}\n` + devLogEl.textContent;
+  if (devLogEl.textContent.length > 4000) devLogEl.textContent = devLogEl.textContent.slice(0, 4000);
+}
+function updateStats() {
+  if (!DEV) return;
+  const taken = slots.filter(s => s.taken).length;
+  devStatsEl.textContent = `Зрителей: ${persons.size} / Мест: ${taken}/${slots.length} / TTL: ${CONFIG.ttl/1000}с`;
+}
+
+/* ---- Слот ---- */
+function takeSlot(nick) {
+  const freeSlots = slots.filter(s => !s.taken);
+  const free = freeSlots[Math.floor(Math.random() * freeSlots.length)];
+  if (!free) return null;
+  free.taken = nick;
+  return free;
+}
+function freeSlot(nick) {
+  const s = slots.find(s => s.taken === nick);
+  if (s) s.taken = null;
+}
+
+/* ---- Создание человечка ---- */
+function createPerson(nick) {
+  if (persons.has(nick)) return persons.get(nick);
+  if (persons.size >= CONFIG.maxPersons) return null;
+  const slot = takeSlot(nick);
+  if (!slot) return null;
+
+  const el = document.createElement('div');
+  el.className = 'person entering walking';
+  const hue = hashHue(nick);
+  el.style.setProperty('--c', `hsl(${hue}, 70%, 60%)`);
+  el.style.setProperty('--sway-delay', (Math.random() * 2).toFixed(2) + 's');
+  el.innerHTML = `
+    <div class="person-bounce">
+      <div class="person-inner">
+        <div class="head"></div>
+        <div class="body"></div>
+        <div class="arm-left"></div>
+        <div class="arm-right"></div>
+        <div class="leg-left"></div>
+        <div class="leg-right"></div>
+        <div class="nick">${escapeHtml(nick)}</div>
+        <div class="msg"></div>
+      </div>
+    </div>
+  `;
+  el.style.left = slot.x + 'px';
+  el.style.bottom = slot.y + 'px';
+  stageEl.appendChild(el);
+
+  const obj = {
+    el,
+    msgEl: el.querySelector('.msg'),
+    bounceEl: el.querySelector('.person-bounce'),
+    slot,
+    lastActivity: Date.now(),
+    queue: [],
+    showing: false,
+    msgTimer: null,
+    lastShownAt: 0,
+    dying: false,
+    celebrating: false
+  };
+  persons.set(nick, obj);
+
+  requestAnimationFrame(() => {
+    el.classList.add('alive');
+    setTimeout(() => {
+      el.classList.remove('entering');
+      setTimeout(() => {
+        el.classList.remove('walking');
+        obj.bounceEl.classList.add('jumping');
+        setTimeout(() => obj.bounceEl.classList.remove('jumping'), 800);
+      }, 1850);
+    }, 40);
+  });
+
+  log(`+ ${nick} (hue ${hue}) ряд ${slot.row}, кол. ${slot.col}`);
+  updateStats();
+  return obj;
+}
+
+/* ---- Удаление ---- */
+function removePerson(nick) {
+  const p = persons.get(nick);
+  if (!p || p.dying) return;
+  p.dying = true;
+  p.el.classList.remove('alive', 'walking');
+  p.el.classList.add('dying');
+  setTimeout(() => {
+    p.el.remove();
+    persons.delete(nick);
+    freeSlot(nick);
+    updateStats();
+  }, CONFIG.fadeOut);
+  log(`- ${nick} ушёл`);
+}
+
+/* ---- Празднование ---- */
+function triggerCelebrate(nick) {
+  const p = persons.get(nick);
+  if (!p || p.dying) return;
+  if (p.celebrating) return;
+  p.celebrating = true;
+  p.bounceEl.classList.add('celebrating');
+  setTimeout(() => {
+    p.bounceEl.classList.remove('celebrating');
+    p.celebrating = false;
+  }, 1800);
+  log(`🎉 ${nick} празднует!`);
+}
+
+/* ---- Конфети ---- */
+function spawnConfetti(count = 80) {
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = `hsl(${Math.random()*360}, 80%, 60%)`;
+    piece.style.animationDelay = (Math.random() * 0.6).toFixed(2) + 's';
+    piece.style.animationDuration = (1.8 + Math.random() * 1.6).toFixed(2) + 's';
+    confettiLayer.appendChild(piece);
+    setTimeout(() => piece.remove(), 4000);
+  }
+  log('🎊 Конфети!');
+}
+
+/* ---- Очередь сообщений ---- */
+function pumpQueue(nick) {
+  const p = persons.get(nick);
+  if (!p || p.dying) return;
+  if (p.showing || p.queue.length === 0) return;
+
+  const now = Date.now();
+  const since = now - p.lastShownAt;
+  const wait = Math.max(0, CONFIG.antispamMs - since);
+
+  setTimeout(() => {
+    const p2 = persons.get(nick);
+    if (!p2 || p2.dying) return;
+    if (p2.showing || p2.queue.length === 0) return;
+    if (p2.lastShownAt && Date.now() - p2.lastShownAt < CONFIG.antispamMs) {
+      pumpQueue(nick);
+      return;
+    }
+
+    const text = p2.queue.shift();
+    p2.showing = true;
+    p2.lastShownAt = Date.now();
+    p2.msgEl.textContent = text;
+    p2.msgEl.classList.add('show');
+    log(`💬 ${nick}: ${text}`);
+
+    clearTimeout(p2.msgTimer);
+    p2.msgTimer = setTimeout(() => {
+      const p3 = persons.get(nick);
+      if (!p3) return;
+      p3.msgEl.classList.remove('show');
+      p3.showing = false;
+      pumpQueue(nick);
+    }, CONFIG.msgDuration);
+  }, wait);
+}
+
+function enqueueMessage(nick, text) {
+  const p = persons.get(nick);
+  if (!p || p.dying) return;
+  p.lastActivity = Date.now();
+  if (p.queue.length >= CONFIG.queueMax) p.queue.shift();
+  p.queue.push(text);
+  pumpQueue(nick);
+}
+
+/* ================= ЕДИНАЯ ТОЧКА ОБРАБОТКИ ================= */
+function handleMessage({ nick, message }) {
+  if (!nick || !message) return;
+
+  const lower = message.toLowerCase();
+  const isKeyword = lower.includes(CONFIG.keyword.toLowerCase());
+  const isCelebrate = CONFIG.celebrateWords.some(w => lower.includes(w));
+
+  if (persons.has(nick)) {
+    enqueueMessage(nick, message);
+    if (isCelebrate) triggerCelebrate(nick);
+  } else if (isKeyword) {
+    createPerson(nick);
+  }
+}
+
+/* ================== TTL ================== */
+setInterval(() => {
+  const now = Date.now();
+  for (const [nick, p] of persons) {
+    if (p.dying) continue;
+    const idle = (now - p.lastActivity) / timeScale;
+    if (idle > CONFIG.ttl) removePerson(nick);
+  }
+}, 1000);
+
+/* ================== TWITCH IRC ================== */
+function connect() {
+  const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+
+  ws.onopen = () => {
+    log('WS: подключено');
+    ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+    ws.send('PASS SCHMOOPIIE');
+    ws.send('NICK justinfan' + Math.floor(Math.random() * 99999));
+    ws.send('JOIN #' + CONFIG.channel.toLowerCase());
+  };
+
+  ws.onmessage = (event) => {
+    for (const line of event.data.split('\r\n')) {
+      if (!line) continue;
+      if (line.startsWith('PING')) { ws.send('PONG :tmi.twitch.tv'); continue; }
+
+      // PRIVMSG
+      const match = line.match(/^@([^ ]+) :(\w+)!\S+ PRIVMSG #\S+ :(.*)$/);
+      if (match) {
+        const tags = Object.fromEntries(match[1].split(';').map(kv => kv.split('=')));
+        const nick = tags['display-name'] || match[2];
+        const message = match[3];
+        handleMessage({ nick, message, tags });
+        continue;
+      }
+
+      // USERNOTICE (follow, sub, raid и т.д.)
+      const noticeMatch = line.match(/^@([^ ]+) :tmi\.twitch\.tv USERNOTICE #(\w+)/);
+      if (noticeMatch) {
+        const tags = Object.fromEntries(noticeMatch[1].split(';').map(kv => kv.split('=')));
+        const msgId = tags['msg-id'];
+        log(`USERNOTICE: ${msgId}`);
+        if (msgId === 'follow') {
+          spawnConfetti(100);
+        }
+      }
+    }
+  };
+
+  ws.onclose = () => {
+    log('WS: разрыв, переподключение…');
+    setTimeout(connect, 3000);
+  };
+}
+connect();
+
+/* ================== DEV ================== */
+function devAddPerson() {
+  const names = ['Alex','Bob','Chris','Dina','Eva','Fedor','Gleb','Helen','Ivan','Julia','Kate','Leo'];
+  const nick = names[Math.floor(Math.random() * names.length)] + Math.floor(Math.random() * 100);
+  handleMessage({ nick, message: 'трибуна' });
+}
+function devSpam() {
+  if (persons.size === 0) { devAddPerson(); return; }
+  const nicks = [...persons.keys()];
+  const nick = nicks[Math.floor(Math.random() * nicks.length)];
+  const texts = ['гоооол','привет всем','как дела?','красава','ахахах','+1','лайк','топ','еее','оооу'];
+  handleMessage({ nick, message: texts[Math.floor(Math.random() * texts.length)] });
+}
+function devCelebrate() {
+  if (persons.size === 0) { devAddPerson(); return; }
+  const nicks = [...persons.keys()];
+  const nick = nicks[Math.floor(Math.random() * nicks.length)];
+  const words = ['ура','гол','победа'];
+  handleMessage({ nick, message: words[Math.floor(Math.random() * words.length)] });
+}
+function devConfetti() { spawnConfetti(120); }
+function devToggleTime() {
+  timeScale = timeScale === 1 ? 10 : 1;
+  devTimeEl.textContent = '×' + timeScale;
+}
+function devClear() {
+  for (const nick of [...persons.keys()]) removePerson(nick);
+}
+
+if (DEV) {
+  setInterval(() => {
+    if (Math.random() < 0.3) devAddPerson();
+    if (Math.random() < 0.5) devSpam();
+    if (Math.random() < 0.1) devCelebrate();
+  }, 4000);
+  updateStats();
+}
+</script>
+</body>
+</html>

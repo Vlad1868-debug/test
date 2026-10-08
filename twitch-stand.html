@@ -393,7 +393,7 @@
 
   /* ===== Табло в стиле футбольного LED-экрана ===== */
   #messageBoard {
-    top: 250px; width: min(380px, calc(100% - 24px)); height: 48px;
+    top: 250px; width: min(380px, calc(100% - 24px)); height: 52px;
     padding: 5px; display:flex; align-items:stretch; gap:5px;
     background:#25282c; border:3px solid #0e1013; border-radius:10px;
     box-shadow: 0 0 0 2px #d9dde0, 0 0 0 5px #11151a, 0 5px 0 #080a0c;
@@ -406,13 +406,13 @@
   }
   #messageBoard::before { left:54px; } #messageBoard::after { right:54px; }
   #messageBoard .board-label {
-    flex:0 0 105px; width:auto; padding:0 6px; overflow:hidden;
+    flex:0 0 105px; width:auto; height:36px; box-sizing:border-box; padding:0 6px; overflow:hidden;
     color:#ff5757; background:#151719; border:2px solid #111;
     box-shadow:inset 0 0 0 1px #4b4f53;
     font-size:13px; line-height:38px; text-align:center; text-overflow:ellipsis;
     text-shadow:0 0 3px #ff3030, 1px 1px #000;
   }
-  #boardViewport { flex:1; max-width:none; height:38px; background:#151719; border:2px solid #111; box-shadow:inset 0 0 0 1px #4b4f53; line-height:38px; }
+  #boardViewport { flex:1; max-width:none; height:36px; box-sizing:border-box; background:#151719; border:2px solid #111; box-shadow:inset 0 0 0 1px #4b4f53; line-height:36px; }
   #boardText { color:#ff5757; padding-left:12px; font-size:13px; letter-spacing:1px; text-shadow:0 0 3px #ff3030, 1px 1px #000; }
   #boardText.scrolling { animation-duration:9s; }
 
@@ -625,14 +625,8 @@ function drawStadium() {
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H, fill: 'url(#skyGrad)' }));
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H * 0.4, fill: 'url(#glow)' }));
   svgEl.append(el('rect', { x: 0, y: H * 0.42 - 50, width: W, height: 18, fill: PALETTE.tierRear[0], opacity: 0.7 }));
-  // Дальний пиксельный силуэт города/стадиона.
-  const skyline = el('g', { fill: PALETTE.tierRear[1], opacity: 0.9 });
-  for (let x = 0; x < W; x += 18) {
-    const h = 8 + ((x * 17) % 28);
-    skyline.append(el('rect', { x, y: H * 0.42 - 50 - h, width: 12, height: h }));
-    if (x % 36 === 0) skyline.append(el('rect', { x:x+3, y:H*0.42-50-h-5, width:6, height:5 }));
-  }
-  svgEl.append(skyline);
+  // Ровная поднятая граница городского фона.
+  svgEl.append(el('rect', { x:0, y:H * 0.42 - 50, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
   for (const cx of [W*0.18, W*0.72]) {
     cloud.append(el('rect', { x:cx-42, y:38, width:84, height:8 }));

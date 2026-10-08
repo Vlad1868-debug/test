@@ -626,7 +626,14 @@ function drawStadium() {
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H * 0.4, fill: 'url(#glow)' }));
   svgEl.append(el('rect', { x: 0, y: H * 0.42 - 80, width: W, height: 18, fill: PALETTE.tierRear[0], opacity: 0.7 }));
   // Ровная поднятая граница городского фона.
-  svgEl.append(el('rect', { x:0, y:H * 0.42 - 50, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
+  svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
+  const skyline = el('g', { fill:PALETTE.tierRear[1], opacity:0.92 });
+  for (let x=0; x<W; x+=22) {
+    const h=12+((x*13)%34);
+    skyline.append(el('rect',{x:x,y:H*0.42-80-h,width:15,height:h}));
+    if (x%44===0) skyline.append(el('rect',{x:x+4,y:H*0.42-84-h,width:7,height:4}));
+  }
+  svgEl.append(skyline);
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
   for (const cx of [W*0.18, W*0.72]) {
     cloud.append(el('rect', { x:cx-42, y:38, width:84, height:8 }));

@@ -680,9 +680,13 @@ function drawStadium() {
   /* Две центральные группы домов с мягкой дымкой */
   const city = el('g', { fill: PALETTE.tierRear[0] });
   const cityBase = rearTopY - 18;
-  city.append(el('rect', { x:0, y:cityBase-58, width:W, height:70, fill:'url(#cityHaze)', opacity:0.55 }));
-  for (const center of [W * 0.38, W * 0.62]) {
-    for (const [offset, h, opacity] of [[-28,28,0.62],[0,44,0.82],[28,32,0.68]]) {
+  const groups = [
+    [W * 0.24, [[-24,26,.58],[8,42,.78],[38,30,.64]]],
+    [W * 0.52, [[-12,35,.72],[20,22,.55]]],
+    [W * 0.78, [[-18,24,.58],[14,46,.8]]]
+  ];
+  for (const [center, buildings] of groups) {
+    for (const [offset, h, opacity] of buildings) {
       const x=center+offset;
       city.append(el('rect',{x,y:cityBase-h,width:22,height:h,opacity}));
       city.append(el('rect',{x:x+6,y:cityBase-h+8,width:3,height:3,fill:PALETTE.wallTop,opacity:opacity*.55}));

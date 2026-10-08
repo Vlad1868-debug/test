@@ -405,7 +405,7 @@
 </head>
 <body>
 
-<div id="messageBoard"><span class="board-label">NICK</span><span id="boardViewport"><span id="boardText">Ожидание сообщений…</span></span></div>
+<div id="messageBoard"><span id="boardNick" class="board-label">—</span><span id="boardViewport"><span id="boardText">Ожидание сообщений…</span></span></div>
 
 <div id="stadium">
   <svg id="stadiumSvg"></svg>
@@ -486,6 +486,7 @@ const devLogEl = document.getElementById('devLog');
 const devStatsEl = document.getElementById('devStats');
 const devTimeEl = document.getElementById('devTime');
 const boardTextEl = document.getElementById('boardText');
+const boardNickEl = document.getElementById('boardNick');
 const boardQueue = [];
 let boardBusy = false;
 if (DEV) devPanel.classList.add('on');
@@ -881,7 +882,8 @@ function pumpBoard() {
   if (boardBusy || boardQueue.length === 0) return;
   boardBusy = true;
   const item = boardQueue.shift();
-  boardTextEl.textContent = `${item.nick}: ${item.message}`;
+  boardNickEl.textContent = item.nick;
+  boardTextEl.textContent = item.message;
   boardTextEl.classList.remove('scrolling');
   boardTextEl.style.setProperty('--ticker-distance', '0px');
   requestAnimationFrame(() => {

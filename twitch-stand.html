@@ -350,6 +350,27 @@
     background: var(--skin); z-index: -1;
   }
 
+  /* ===== Общее футбольное табло ===== */
+  #messageBoard {
+    position: absolute; z-index: 20;
+    left: 50%; top: 8px; transform: translateX(-50%);
+    width: min(360px, calc(100% - 28px)); height: 30px;
+    box-sizing: border-box; overflow: hidden;
+    background: #111923; border: 2px solid #596879;
+    box-shadow: 0 3px 0 #080b10, inset 0 0 0 1px #202b38;
+    color: #f3f1d0; font-family: 'Courier New', monospace;
+    font-size: 12px; line-height: 26px; white-space: nowrap;
+  }
+  #messageBoard .board-label {
+    display: inline-block; padding: 0 7px; color: #f2c94c;
+    border-right: 1px solid #596879; font-weight: 700;
+  }
+  #boardViewport { display: inline-block; max-width: calc(100% - 82px); overflow: hidden; vertical-align: top; }
+  #boardText { display: inline-block; padding-left: 8px; }
+  #boardText.scrolling { animation: boardTicker 8s linear infinite; }
+  @keyframes boardTicker { 0%, 12% { transform: translateX(0); } 88%, 100% { transform: translateX(var(--ticker-distance)); } }
+  .person .msg { display: none; }
+
   /* ===== Dev-панель ===== */
   #devPanel {
     position: absolute;
@@ -383,6 +404,8 @@
 </style>
 </head>
 <body>
+
+<div id="messageBoard"><span class="board-label">CHAT</span><span id="boardViewport"><span id="boardText">Ожидание сообщений…</span></span></div>
 
 <div id="stadium">
   <svg id="stadiumSvg"></svg>
@@ -462,6 +485,9 @@ const devPanel = document.getElementById('devPanel');
 const devLogEl = document.getElementById('devLog');
 const devStatsEl = document.getElementById('devStats');
 const devTimeEl = document.getElementById('devTime');
+const boardTextEl = document.getElementById('boardText');
+const boardQueue = [];
+let boardBusy = false;
 if (DEV) devPanel.classList.add('on');
 
 const persons = new Map();
@@ -846,6 +872,29 @@ function enqueueMessage(nick, text) {
   pumpQueue(nick);
 }
 
+function enqueueBoardMessage(nick, message) {
+  boardQueue.push({ nick, message });
+  if (boardQueue.length > 20) boardQueue.shift();
+  pumpBoard();
+}
+function pumpBoard() {
+  if (boardBusy || boardQueue.length === 0) return;
+  boardBusy = true;
+  const item = boardQueue.shift();
+  boardTextEl.textContent = `${item.nick}: ${item.message}`;
+  boardTextEl.classList.remove('scrolling');
+  boardTextEl.style.setProperty('--ticker-distance', '0px');
+  requestAnimationFrame(() => {
+    const viewport = document.getElementById('boardViewport');
+    const distance = Math.max(0, boardTextEl.scrollWidth - viewport.clientWidth + 12);
+    if (distance > 0) {
+      boardTextEl.style.setProperty('--ticker-distance', `-${distance}px`);
+      boardTextEl.classList.add('scrolling');
+    }
+  });
+  setTimeout(() => { boardBusy = false; pumpBoard(); }, Math.max(4500, Math.min(10000, 3000 + item.message.length * 90)));
+}
+
 /* ================= ЕДИНАЯ ТОЧКА ОБРАБОТКИ ================= */
 function handleMessage({ nick, message }) {
   if (!nick || !message) return;
@@ -856,6 +905,7 @@ function handleMessage({ nick, message }) {
 
   if (persons.has(nick)) {
     enqueueMessage(nick, message);
+    enqueueBoardMessage(nick, message);
     if (isCelebrate) triggerCelebrate(nick);
   } else if (isKeyword) {
     createPerson(nick);

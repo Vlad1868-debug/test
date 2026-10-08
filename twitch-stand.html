@@ -379,6 +379,18 @@
   body.theme-night #messageBoard .board-label { color: #62e7ff; border-color: #347ca8; }
   body.theme-night #stadiumSvg { filter: saturate(.8) hue-rotate(12deg) brightness(.9); }
 
+  /* ===== Вечернее табло и читаемые ники ===== */
+  #messageBoard { top: 78px; height: 34px; border: 2px solid #4eb7d0; background: #0b1725; box-shadow: 0 4px 0 #050912, inset 0 0 0 1px #8eeaff; }
+  #messageBoard::before, #messageBoard::after { content:''; position:absolute; top:100%; width:8px; height:24px; background:#273746; border:1px solid #4f7280; z-index:-1; }
+  #messageBoard::before { left:42px; } #messageBoard::after { right:42px; }
+  #messageBoard .board-label { width:86px; line-height:30px; color:#8eeaff; border-color:#397b91; text-shadow:1px 1px #07121c; }
+  #boardViewport { line-height:30px; max-width:calc(100% - 92px); }
+  .person .nick { top:-24px; padding:2px 4px; background:rgba(5,12,20,.82); border:1px solid rgba(100,170,190,.7); color:#e7fbff; font-size:13px; line-height:14px; text-shadow:1px 1px #000; }
+  .cloud-pixel { animation: cloudDrift 28s linear infinite; }
+  .flag-pixel { transform-box: fill-box; transform-origin: left center; animation: flagWave 1.8s ease-in-out infinite; }
+  @keyframes cloudDrift { from { transform:translateX(-18px); } to { transform:translateX(18px); } }
+  @keyframes flagWave { 0%,100% { transform:skewY(0deg); } 50% { transform:skewY(5deg); } }
+
   /* ===== Dev-панель ===== */
   #devPanel {
     position: absolute;
@@ -431,8 +443,6 @@
     <button onclick="devConfetti()">Конфети</button>
     <button onclick="devToggleTime()">Время ×10</button>
     <button onclick="devClear()">Очистить</button>
-    <button onclick="applyEnvironmentTheme('light')">День</button>
-    <button onclick="applyEnvironmentTheme('night')">Вечер</button>
     <button onclick="devTheme('retro')">Ретро</button>
     <button onclick="devTheme('night')">Ночь</button>
   </div>
@@ -598,7 +608,7 @@ function drawStadium() {
     if (x % 36 === 0) skyline.append(el('rect', { x:x+3, y:H*0.42-h-5, width:6, height:5 }));
   }
   svgEl.append(skyline);
-  const cloud = el('g', { fill: PALETTE.wallTop, opacity: 0.22 });
+  const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
   for (const cx of [W*0.18, W*0.72]) {
     cloud.append(el('rect', { x:cx-42, y:38, width:84, height:8 }));
     cloud.append(el('rect', { x:cx-26, y:30, width:52, height:8 }));
@@ -613,7 +623,7 @@ function drawStadium() {
       x1: fx, y1: 18, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
       stroke: PALETTE.flagPole, 'stroke-width': 1
     }));
-    flagGroup.append(el('polygon', {
+    flagGroup.append(el('polygon', { class:'flag-pixel',
       points: `${fx},20 ${fx + 30},26 ${fx},32`,
       fill: PALETTE.flag
     }));
@@ -672,31 +682,13 @@ function drawStadium() {
     x: 0, y: wallTopY, width: W, height: 3, fill: PALETTE.wallTop
   }));
 
-  /* Баннеры */
+  /* Единая пиксельная лента баннеров */
   const bbY = wallTopY + 10;
   const bbH = WALL_H - 18;
-  const count = CONFIG.banners.length;
-  const bbGap = 20;
-  const bbW = (W - 40 - bbGap * (count - 1)) / count;
-  const bbStart = 20;
-
-  for (let i = 0; i < count; i++) {
-    const bx = bbStart + i * (bbW + bbGap);
-    svgEl.append(el('rect', {
-      x: bx, y: bbY, width: bbW, height: bbH,
-      fill: PALETTE.billboard, stroke: PALETTE.billboardStroke,
-      'stroke-width': 1, rx: 2
-    }));
-    const text = el('text', {
-      x: bx + bbW / 2, y: bbY + bbH / 2 + 4,
-      'font-family': 'Arial',
-      'font-size': Math.min(12, bbH * 0.55),
-      fill: PALETTE.billboardText,
-      'text-anchor': 'middle'
-    });
-    text.textContent = CONFIG.banners[i];
-    svgEl.append(text);
-  }
+  svgEl.append(el('rect', { x:20, y:bbY, width:W-40, height:bbH, fill:PALETTE.billboard, stroke:PALETTE.billboardStroke, 'stroke-width':2, rx:2 }));
+  const text = el('text', { x:W/2, y:bbY+bbH/2+4, 'font-family':'Courier New, monospace', 'font-size':Math.min(13, bbH*.58), fill:PALETTE.billboardText, 'text-anchor':'middle', 'font-weight':'700' });
+  text.textContent = CONFIG.banners.join('   •   ');
+  svgEl.append(text);
 }
 
 /* ============== ПЕРЕСБОРКА ============== */
@@ -711,7 +703,7 @@ function rebuildAll() {
   persons.clear();
   for (const nick of nicks) createPerson(nick);
 }
-applyEnvironmentTheme('light');
+applyEnvironmentTheme('night');
 rebuildAll();
 window.addEventListener('resize', rebuildAll);
 

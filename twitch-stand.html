@@ -631,13 +631,6 @@ function drawStadium() {
   // Поднятый слой городского фона перекрывает ночное небо.
   svgEl.append(el('rect', { x:0, y:0, width:W, height:H * 0.42 - 80, fill:PALETTE.tierRear[1], opacity:0.92 }));
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
-  const skyline = el('g', { fill:PALETTE.tierRear[0], opacity:0.9 });
-  const buildings = [[0,22,30],[38,16,22],[66,27,25], [150,20,24],[181,31,28],[216,17,20], [300,24,27],[336,15,22],[366,29,25]];
-  for (const [x,h,w] of buildings) {
-    skyline.append(el('rect',{x:x+W*0.2,y:H*0.42-80-h,width:w,height:h}));
-    skyline.append(el('rect',{x:x+W*0.2+5,y:H*0.42-80-h+6,width:3,height:3,fill:PALETTE.wallTop,opacity:.6}));
-  }
-  svgEl.append(skyline);
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
   for (const cx of [W*0.18, W*0.72]) {
     cloud.append(el('rect', { x:cx-42, y:38, width:84, height:8 }));
@@ -683,17 +676,16 @@ function drawStadium() {
     stroke: 'rgba(255,255,255,0.05)', 'stroke-width': 1
   }));
 
-  /* Видимый городской силуэт поверх заднего яруса */
+  /* Две центральные группы городских домов */
   const city = el('g', { fill: PALETTE.tierRear[0], opacity: 0.95 });
-  const cityBase = rearTopY + 4;
-  city.append(el('rect', { x:0, y:cityBase, width:W, height:8, fill:PALETTE.tierRear[0] }));
-  for (const group of [[0.12, [28,42,24]], [0.5, [22,36,30]], [0.86, [32,48,26]]]) {
-    const center = W * group[0];
-    group[1].forEach((h, i) => {
-      const x = center + (i - 1) * 30;
-      city.append(el('rect', { x, y:cityBase-h, width:22, height:h }));
-      city.append(el('rect', { x:x+6, y:cityBase-h+8, width:3, height:3, fill:PALETTE.wallTop, opacity:0.7 }));
-    });
+  const cityBase = rearTopY - 18;
+  city.append(el('rect', { x:0, y:cityBase, width:W, height:5, fill:PALETTE.tierRear[0] }));
+  for (const center of [W * 0.38, W * 0.62]) {
+    for (const [offset, h] of [[-28,28],[0,44],[28,32]]) {
+      const x=center+offset;
+      city.append(el('rect',{x,y:cityBase-h,width:22,height:h}));
+      city.append(el('rect',{x:x+6,y:cityBase-h+8,width:3,height:3,fill:PALETTE.wallTop,opacity:0.7}));
+    }
   }
   svgEl.append(city);
 

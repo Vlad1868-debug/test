@@ -495,7 +495,7 @@ const CONFIG = {
 
   maxPersons: 15,
 
-  banners: ['✈ NONSTAZY', '▶ NONSTAZY', '◉ NONSTAZY'],
+  banners: ['telegram NONSTAZY', 'twitch NONSTAZY'],
 
   // Слова для празднования (прыжки)
   celebrateWords: ['ура', 'гол', 'победа'],
@@ -627,11 +627,11 @@ function drawStadium() {
   svgEl.append(el('rect', { x: 0, y: H * 0.42 - 80, width: W, height: 18, fill: PALETTE.tierRear[0], opacity: 0.7 }));
   // Ровная поднятая граница городского фона.
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
-  const skyline = el('g', { fill:PALETTE.tierRear[1], opacity:0.92 });
-  for (let x=0; x<W; x+=22) {
-    const h=12+((x*13)%34);
-    skyline.append(el('rect',{x:x,y:H*0.42-80-h,width:15,height:h}));
-    if (x%44===0) skyline.append(el('rect',{x:x+4,y:H*0.42-84-h,width:7,height:4}));
+  const skyline = el('g', { fill:PALETTE.tierRear[1], opacity:0.9 });
+  const buildings = [[0,26,28],[34,18,20],[60,32,24],[96,14,18],[126,24,30],[164,17,22],[198,29,26],[238,20,21],[274,34,30],[316,16,18],[350,25,24]];
+  for (const [x,h,w] of buildings) {
+    skyline.append(el('rect',{x:x+W*0.2,y:H*0.42-80-h,width:w,height:h}));
+    skyline.append(el('rect',{x:x+W*0.2+5,y:H*0.42-80-h+6,width:3,height:3,fill:PALETTE.wallTop,opacity:.45}));
   }
   svgEl.append(skyline);
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
@@ -708,13 +708,23 @@ function drawStadium() {
     x: 0, y: wallTopY, width: W, height: 3, fill: PALETTE.wallTop
   }));
 
-  /* Единая пиксельная лента баннеров */
-  const bbY = wallTopY + 10;
-  const bbH = WALL_H - 18;
-  svgEl.append(el('rect', { x:20, y:bbY, width:W-40, height:bbH, fill:PALETTE.billboard, stroke:PALETTE.billboardStroke, 'stroke-width':2, rx:2 }));
-  const text = el('text', { x:W/2, y:bbY+bbH/2+4, 'font-family':'Courier New, monospace', 'font-size':Math.min(13, bbH*.58), fill:PALETTE.billboardText, 'text-anchor':'middle', 'font-weight':'700' });
-  text.textContent = CONFIG.banners.join('   •   ');
-  svgEl.append(text);
+  /* Нижняя лента с двумя пиксельными соцсетями */
+  const bbY = wallTopY + 10, bbH = WALL_H - 18, gap = 18;
+  const panelW = (W - 40 - gap) / 2;
+  for (let i=0; i<2; i++) {
+    const bx = 20 + i * (panelW + gap);
+    svgEl.append(el('rect',{x:bx,y:bbY,width:panelW,height:bbH,fill:PALETTE.billboard,stroke:PALETTE.billboardStroke,'stroke-width':2,rx:2}));
+    const cx=bx+20, cy=bbY+bbH/2;
+    svgEl.append(el('circle',{cx,cy,r:7,fill:i===0?'#39aee1':'#7547c7'}));
+    if (i===0) svgEl.append(el('polygon',{points:`${cx-4},${cy} ${cx+4},${cy-4} ${cx+2},${cy+5}`,fill:'#fff'}));
+    else {
+      svgEl.append(el('rect',{x:cx-4,y:cy-4,width:8,height:8,fill:'#fff'}));
+      svgEl.append(el('rect',{x:cx-2,y:cy-2,width:1.5,height:3,fill:'#7547c7'}));
+      svgEl.append(el('rect',{x:cx+1,y:cy-2,width:1.5,height:3,fill:'#7547c7'}));
+    }
+    const text=el('text',{x:bx+panelW/2+12,y:bbY+bbH/2+4,'font-family':'Courier New, monospace','font-size':Math.min(13,bbH*.58),fill:PALETTE.billboardText,'text-anchor':'middle','font-weight':'700'});
+    text.textContent='NONSTAZY'; svgEl.append(text);
+  }
 }
 
 /* ============== ПЕРЕСБОРКА ============== */

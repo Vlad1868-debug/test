@@ -628,8 +628,16 @@ function drawStadium() {
   // Поднятый слой городского фона перекрывает ночное небо.
   svgEl.append(el('rect', { x:0, y:0, width:W, height:H * 0.42 - 80, fill:PALETTE.tierRear[1], opacity:0.92 }));
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
-  // Спокойный цельный городской слой без отдельных висящих зданий.
-  svgEl.append(el('rect', { x:0, y:rearTopY-10, width:W, height:28, fill:PALETTE.tierRear[0] }));
+  // Поднятый слой городского фона перекрывает ночное небо.
+  svgEl.append(el('rect', { x:0, y:0, width:W, height:H * 0.42 - 80, fill:PALETTE.tierRear[1], opacity:0.92 }));
+  svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
+  const skyline = el('g', { fill:PALETTE.tierRear[0], opacity:0.9 });
+  const buildings = [[0,22,30],[38,16,22],[66,27,25], [150,20,24],[181,31,28],[216,17,20], [300,24,27],[336,15,22],[366,29,25]];
+  for (const [x,h,w] of buildings) {
+    skyline.append(el('rect',{x:x+W*0.2,y:H*0.42-80-h,width:w,height:h}));
+    skyline.append(el('rect',{x:x+W*0.2+5,y:H*0.42-80-h+6,width:3,height:3,fill:PALETTE.wallTop,opacity:.6}));
+  }
+  svgEl.append(skyline);
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
   for (const cx of [W*0.18, W*0.72]) {
     cloud.append(el('rect', { x:cx-42, y:38, width:84, height:8 }));

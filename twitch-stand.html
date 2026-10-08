@@ -602,6 +602,7 @@ function drawStadium() {
   defs.append(grad('tierMid',   [['0%', PALETTE.tierMid[0]],   ['100%', PALETTE.tierMid[1]]]));
   defs.append(grad('tierRear',  [['0%', PALETTE.tierRear[0]],  ['100%', PALETTE.tierRear[1]]]));
   defs.append(grad('wallGrad',  [['0%', PALETTE.wallGradTop],  ['100%', PALETTE.wallGradBot]]));
+  defs.append(grad('cityHaze', [['0%', PALETTE.tierRear[0]], ['100%', 'rgba(0,0,0,0)']], '0', '1'));
 
   const glow = el('radialGradient', { id: 'glow', cx: '0.5', cy: '0', r: '0.7' });
   glow.append(
@@ -676,15 +677,15 @@ function drawStadium() {
     stroke: 'rgba(255,255,255,0.05)', 'stroke-width': 1
   }));
 
-  /* Две центральные группы городских домов */
-  const city = el('g', { fill: PALETTE.tierRear[0], opacity: 0.95 });
+  /* Две центральные группы домов с мягкой дымкой */
+  const city = el('g', { fill: PALETTE.tierRear[0] });
   const cityBase = rearTopY - 18;
-  city.append(el('rect', { x:0, y:cityBase, width:W, height:5, fill:PALETTE.tierRear[0] }));
+  city.append(el('rect', { x:0, y:cityBase-58, width:W, height:70, fill:'url(#cityHaze)', opacity:0.55 }));
   for (const center of [W * 0.38, W * 0.62]) {
-    for (const [offset, h] of [[-28,28],[0,44],[28,32]]) {
+    for (const [offset, h, opacity] of [[-28,28,0.62],[0,44,0.82],[28,32,0.68]]) {
       const x=center+offset;
-      city.append(el('rect',{x,y:cityBase-h,width:22,height:h}));
-      city.append(el('rect',{x:x+6,y:cityBase-h+8,width:3,height:3,fill:PALETTE.wallTop,opacity:0.7}));
+      city.append(el('rect',{x,y:cityBase-h,width:22,height:h,opacity}));
+      city.append(el('rect',{x:x+6,y:cityBase-h+8,width:3,height:3,fill:PALETTE.wallTop,opacity:opacity*.55}));
     }
   }
   svgEl.append(city);

@@ -431,6 +431,8 @@
     <button onclick="devConfetti()">Конфети</button>
     <button onclick="devToggleTime()">Время ×10</button>
     <button onclick="devClear()">Очистить</button>
+    <button onclick="applyEnvironmentTheme('light')">День</button>
+    <button onclick="applyEnvironmentTheme('night')">Вечер</button>
     <button onclick="devTheme('retro')">Ретро</button>
     <button onclick="devTheme('night')">Ночь</button>
   </div>
@@ -576,6 +578,22 @@ function drawStadium() {
   /* Небо */
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H, fill: 'url(#skyGrad)' }));
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H * 0.4, fill: 'url(#glow)' }));
+  svgEl.append(el('rect', { x: 0, y: H * 0.42, width: W, height: 18, fill: PALETTE.tierRear[0], opacity: 0.7 }));
+  // Дальний пиксельный силуэт города/стадиона.
+  const skyline = el('g', { fill: PALETTE.tierRear[1], opacity: 0.9 });
+  for (let x = 0; x < W; x += 18) {
+    const h = 8 + ((x * 17) % 28);
+    skyline.append(el('rect', { x, y: H * 0.42 - h, width: 12, height: h }));
+    if (x % 36 === 0) skyline.append(el('rect', { x:x+3, y:H*0.42-h-5, width:6, height:5 }));
+  }
+  svgEl.append(skyline);
+  const cloud = el('g', { fill: PALETTE.wallTop, opacity: 0.22 });
+  for (const cx of [W*0.18, W*0.72]) {
+    cloud.append(el('rect', { x:cx-42, y:38, width:84, height:8 }));
+    cloud.append(el('rect', { x:cx-26, y:30, width:52, height:8 }));
+    cloud.append(el('rect', { x:cx-12, y:24, width:24, height:6 }));
+  }
+  svgEl.append(cloud);
 
   /* Флаги — мачты доходят до верхнего яруса */
   const flagGroup = el('g');
@@ -682,6 +700,7 @@ function rebuildAll() {
   persons.clear();
   for (const nick of nicks) createPerson(nick);
 }
+applyEnvironmentTheme('light');
 rebuildAll();
 window.addEventListener('resize', rebuildAll);
 

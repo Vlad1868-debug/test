@@ -269,6 +269,39 @@
     background: var(--c);
   }
 
+  /* ===== Персонаж: плечи, ладони, ступни и варианты одежды ===== */
+  .person .head, .person .arm-left, .person .arm-right,
+  .person .leg-left, .person .leg-right,
+  .person .hand-left, .person .hand-right,
+  .person .foot-left, .person .foot-right { background: var(--skin); }
+  .person .body {
+    top: 15px; width: 9px; height: 25px;
+    background: var(--shirt);
+    border: 1px solid #11131a;
+  }
+  .person .arm-left, .person .arm-right {
+    top: 17px; width: 3px; height: 19px;
+    border: 0;
+  }
+  .person .arm-left { transform: translateX(-50%) rotate(28deg); }
+  .person .arm-right { transform: translateX(-50%) rotate(-28deg); }
+  .person .leg-left, .person .leg-right {
+    top: 39px; width: 3px; height: 23px; border: 0;
+  }
+  .person .hand-left, .person .hand-right,
+  .person .foot-left, .person .foot-right {
+    position: absolute; display: block; z-index: 2;
+    width: 5px; height: 5px; background: var(--skin);
+  }
+  .person .hand-left { left: 5px; top: 32px; }
+  .person .hand-right { right: 5px; top: 32px; }
+  .person .foot-left { left: 7px; top: 60px; }
+  .person .foot-right { right: 7px; top: 60px; }
+  .person .hand-left, .person .hand-right,
+  .person .foot-left, .person .foot-right {
+    clip-path: polygon(0 20%, 80% 20%, 100% 50%, 80% 80%, 0 80%);
+  }
+
   /* ===== Dev-панель ===== */
   #devPanel {
     position: absolute;
@@ -614,6 +647,10 @@ function createPerson(nick) {
   el.className = 'person entering walking';
   const hue = hashHue(nick);
   el.style.setProperty('--c', `hsl(${hue}, 70%, 60%)`);
+  const skin = ['#f0b38a', '#c9825b', '#8f5539', '#f3c7a0'][Math.floor(Math.random() * 4)];
+  const shirt = ['#e85d5d', '#4f83d1', '#55b879', '#d49a3a', '#a66bd1'][Math.floor(Math.random() * 5)];
+  el.style.setProperty('--skin', skin);
+  el.style.setProperty('--shirt', shirt);
   el.style.setProperty('--sway-delay', (Math.random() * 2).toFixed(2) + 's');
   el.innerHTML = `
     <div class="person-bounce">
@@ -622,8 +659,12 @@ function createPerson(nick) {
         <div class="body"></div>
         <div class="arm-left"></div>
         <div class="arm-right"></div>
+        <div class="hand-left"></div>
+        <div class="hand-right"></div>
         <div class="leg-left"></div>
         <div class="leg-right"></div>
+        <div class="foot-left"></div>
+        <div class="foot-right"></div>
         <div class="nick">${escapeHtml(nick)}</div>
         <div class="msg"></div>
       </div>

@@ -302,6 +302,40 @@
     clip-path: polygon(0 20%, 80% 20%, 100% 50%, 80% 80%, 0 80%);
   }
 
+  /* ===== Лицо, одежда и соединённые конечности ===== */
+  .person .head::before { inset: 0; }
+  .person .head::after { inset: 2px; }
+  .person .eye-left, .person .eye-right {
+    position: absolute; z-index: 5; top: 7px;
+    width: 2px; height: 2px; background: #17131a;
+  }
+  .person .eye-left { left: 5px; }
+  .person .eye-right { right: 5px; }
+  .person .mouth {
+    position: absolute; z-index: 5; left: 50%; top: 12px;
+    width: 5px; height: 2px; background: #5b2630;
+    transform: translateX(-50%);
+  }
+  .person .ear-left, .person .ear-right {
+    position: absolute; z-index: 1; top: 8px;
+    width: 3px; height: 5px; background: var(--skin);
+  }
+  .person .ear-left { left: -2px; }
+  .person .ear-right { right: -2px; }
+  .person .arm-left, .person .arm-right { overflow: visible; }
+  .person .hand-left, .person .hand-right {
+    position: absolute; top: 15px; width: 5px; height: 5px;
+    background: var(--skin); z-index: 3;
+  }
+  .person .arm-left .hand-left { left: -2px; }
+  .person .arm-right .hand-right { right: -2px; }
+  .person .pants {
+    position: absolute; z-index: 2; left: 50%; top: 37px;
+    width: 11px; height: 9px; transform: translateX(-50%);
+    background: var(--pants); border: 1px solid #11131a;
+  }
+  .person .foot-left, .person .foot-right { background: var(--shoe); }
+
   /* ===== Dev-панель ===== */
   #devPanel {
     position: absolute;
@@ -651,16 +685,17 @@ function createPerson(nick) {
   const shirt = ['#e85d5d', '#4f83d1', '#55b879', '#d49a3a', '#a66bd1'][Math.floor(Math.random() * 5)];
   el.style.setProperty('--skin', skin);
   el.style.setProperty('--shirt', shirt);
+  el.style.setProperty('--pants', ['#27324a', '#3d2e36', '#252b2b'][Math.floor(Math.random() * 3)]);
+  el.style.setProperty('--shoe', '#17191f');
   el.style.setProperty('--sway-delay', (Math.random() * 2).toFixed(2) + 's');
   el.innerHTML = `
     <div class="person-bounce">
       <div class="person-inner">
-        <div class="head"></div>
+        <div class="head"><span class="eye-left"></span><span class="eye-right"></span><span class="mouth"></span><span class="ear-left"></span><span class="ear-right"></span></div>
         <div class="body"></div>
-        <div class="arm-left"></div>
-        <div class="arm-right"></div>
-        <div class="hand-left"></div>
-        <div class="hand-right"></div>
+        <div class="arm-left"><span class="hand-left"></span></div>
+        <div class="arm-right"><span class="hand-right"></span></div>
+        <div class="pants"></div>
         <div class="leg-left"></div>
         <div class="leg-right"></div>
         <div class="foot-left"></div>

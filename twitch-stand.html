@@ -485,6 +485,17 @@ const PALETTE = {
   flag: '#2a2a32',
   flagPole: '#3a3a44',
 };
+
+const ENV_THEMES = {
+  light: { sky1:'#e89a55', sky2:'#f5c477', tierFront:['#47706d','#355655'], tierMid:['#527c78','#3e615f'], tierRear:['#668d83','#4f716b'], seatFront:'#6e9b84', seatMid:'#5d8876', seatRear:'#4f7669', seatStroke:'#263d3a', wallGradTop:'#718b7d', wallGradBot:'#405c56', wallTop:'#9bb09a', billboard:'#24484b', billboardStroke:'#d4b65d', billboardText:'#f5e7b2', flag:'#d55b43', flagPole:'#334c47' },
+  night: { sky1:'#111827', sky2:'#263b55', tierFront:['#263743','#1b2934'], tierMid:['#304653','#243640'], tierRear:['#3d5660','#293d48'], seatFront:'#45636a', seatMid:'#3d5860', seatRear:'#304a53', seatStroke:'#111c27', wallGradTop:'#3d5260', wallGradBot:'#202d39', wallTop:'#607886', billboard:'#102331', billboardStroke:'#4eb7d0', billboardText:'#d6f5f5', flag:'#8e4d79', flagPole:'#7893a0' }
+};
+function applyEnvironmentTheme(name) {
+  Object.assign(PALETTE, ENV_THEMES[name] || ENV_THEMES.light);
+  document.body.dataset.environment = name;
+  drawStadium();
+  log(`Окружение: ${name}`);
+}
 /* =================================================================== */
 
 const DEV = new URLSearchParams(location.search).get('dev') === '1';

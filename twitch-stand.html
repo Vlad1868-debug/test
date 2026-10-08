@@ -628,11 +628,11 @@ function drawStadium() {
   // Поднятый слой городского фона перекрывает ночное небо.
   svgEl.append(el('rect', { x:0, y:0, width:W, height:H * 0.42 - 80, fill:PALETTE.tierRear[1], opacity:0.92 }));
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 80, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
-  const skyline = el('g', { fill:PALETTE.tierRear[1], opacity:0.9 });
+  const skyline = el('g', { fill:PALETTE.tierRear[0], opacity:0.9 });
   const buildings = [[0,22,30],[38,16,22],[66,27,25], [150,20,24],[181,31,28],[216,17,20], [300,24,27],[336,15,22],[366,29,25]];
   for (const [x,h,w] of buildings) {
     skyline.append(el('rect',{x:x+W*0.2,y:H*0.42-80-h,width:w,height:h}));
-    skyline.append(el('rect',{x:x+W*0.2+5,y:H*0.42-80-h+6,width:3,height:3,fill:PALETTE.wallTop,opacity:.45}));
+    skyline.append(el('rect',{x:x+W*0.2+5,y:H*0.42-80-h+6,width:3,height:3,fill:PALETTE.wallTop,opacity:.6}));
   }
   svgEl.append(skyline);
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
@@ -647,7 +647,7 @@ function drawStadium() {
   const flagGroup = el('g');
   for (const fx of [W * 0.12, W * 0.88]) {
     flagGroup.append(el('line', {
-      x1: fx, y1: 18, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
+      x1: fx, y1: 105, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
       stroke: PALETTE.flagPole, 'stroke-width': 1
     }));
     flagGroup.append(el('polygon', { class:'flag-pixel',

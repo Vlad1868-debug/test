@@ -685,7 +685,8 @@ function drawStadium() {
 
   /* Видимый городской силуэт поверх заднего яруса */
   const city = el('g', { fill: PALETTE.tierRear[0], opacity: 0.95 });
-  const cityBase = rearTopY - 4;
+  const cityBase = rearTopY + 4;
+  city.append(el('rect', { x:0, y:cityBase, width:W, height:8, fill:PALETTE.tierRear[0] }));
   for (const group of [[0.12, [28,42,24]], [0.5, [22,36,30]], [0.86, [32,48,26]]]) {
     const center = W * group[0];
     group[1].forEach((h, i) => {

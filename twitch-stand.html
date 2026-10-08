@@ -336,6 +336,20 @@
   }
   .person .foot-left, .person .foot-right { background: var(--shoe); }
 
+  /* ===== Голова: цельная форма без лишних выступов ===== */
+  .person .head {
+    top: 0; width: 19px; height: 18px;
+    background: var(--skin);
+    border: 1px solid #17131a;
+    clip-path: polygon(17% 0, 83% 0, 100% 17%, 100% 83%, 83% 100%, 17% 100%, 0 83%, 0 17%);
+    box-shadow: none;
+  }
+  .person .head::before, .person .head::after { display: none; }
+  .person .ear-left, .person .ear-right {
+    top: 7px; width: 3px; height: 4px;
+    background: var(--skin); z-index: -1;
+  }
+
   /* ===== Dev-панель ===== */
   #devPanel {
     position: absolute;

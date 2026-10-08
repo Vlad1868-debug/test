@@ -353,7 +353,7 @@
   /* ===== Общее футбольное табло ===== */
   #messageBoard {
     position: absolute; z-index: 20;
-    left: 50%; top: 8px; transform: translateX(-50%);
+    left: 50%; top: 78px; transform: translateX(-50%);
     width: min(360px, calc(100% - 28px)); height: 30px;
     box-sizing: border-box; overflow: hidden;
     background: #111923; border: 2px solid #596879;
@@ -362,7 +362,7 @@
     font-size: 12px; line-height: 26px; white-space: nowrap;
   }
   #messageBoard .board-label {
-    display: inline-block; padding: 0 7px; color: #f2c94c;
+    display: inline-block; width: 78px; box-sizing: border-box; text-align: center; padding: 0 5px; color: #f2c94c;
     border-right: 1px solid #596879; font-weight: 700;
   }
   #boardViewport { display: inline-block; max-width: calc(100% - 82px); overflow: hidden; vertical-align: top; }
@@ -405,7 +405,7 @@
 </head>
 <body>
 
-<div id="messageBoard"><span class="board-label">CHAT</span><span id="boardViewport"><span id="boardText">Ожидание сообщений…</span></span></div>
+<div id="messageBoard"><span class="board-label">NICK</span><span id="boardViewport"><span id="boardText">Ожидание сообщений…</span></span></div>
 
 <div id="stadium">
   <svg id="stadiumSvg"></svg>
@@ -979,7 +979,7 @@ function devSpam() {
   if (persons.size === 0) { devAddPerson(); return; }
   const nicks = [...persons.keys()];
   const nick = nicks[Math.floor(Math.random() * nicks.length)];
-  const texts = ['гоооол','привет всем','как дела?','красава','ахахах','+1','лайк','топ','еее','оооу'];
+  const texts = ['гоооол, какая атмосфера на трибуне сегодня!', 'привет всем, я только что занял место и уже болею за команду!', 'как дела? надеюсь, всем нравится новый вид трибуны и анимации!', 'красава, отличный момент, давайте поддержим команду вместе!', 'ахахах, смотрите как мой персонаж машет руками и прыгает!', '+1, я тоже здесь и готов кричать до конца матча!', 'лайк, очень длинное тестовое сообщение для проверки бегущей строки на табло!', 'топ, текст должен плавно проехать от начала до конца этого маленького экрана!', 'еее, гол гол гол, вся трибуна сейчас должна начать праздновать!', 'оооу, проверяем как длинный ник и длинное сообщение выглядят вместе'];
   handleMessage({ nick, message: texts[Math.floor(Math.random() * texts.length)] });
 }
 function devCelebrate() {

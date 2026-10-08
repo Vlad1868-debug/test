@@ -393,14 +393,14 @@
 
   /* ===== Табло в стиле футбольного LED-экрана ===== */
   #messageBoard {
-    top: 200px; width: min(380px, calc(100% - 24px)); height: 48px;
+    top: 250px; width: min(380px, calc(100% - 24px)); height: 48px;
     padding: 5px; display:flex; align-items:stretch; gap:5px;
     background:#25282c; border:3px solid #0e1013; border-radius:10px;
     box-shadow: 0 0 0 2px #d9dde0, 0 0 0 5px #11151a, 0 5px 0 #080a0c;
     line-height:38px; font-family:'Courier New', monospace;
   }
   #messageBoard::before, #messageBoard::after {
-    top:calc(100% + 5px); width:13px; height:28px; z-index:-1;
+    top:calc(100% + 5px); width:13px; height:38px; z-index:0;
     background:linear-gradient(90deg,#202327,#9da3a8 48%,#24272b 60%,#101214);
     border:0; box-shadow:0 2px 0 #080a0c;
   }
@@ -643,7 +643,7 @@ function drawStadium() {
 
   /* Флаги — мачты доходят до верхнего яруса */
   const flagGroup = el('g');
-  for (const fx of [W * 0.12, W * 0.5, W * 0.88]) {
+  for (const fx of [W * 0.12, W * 0.88]) {
     flagGroup.append(el('line', {
       x1: fx, y1: 18, x2: fx, y2: rearTopY,     // мачта стоит на трибуне
       stroke: PALETTE.flagPole, 'stroke-width': 1

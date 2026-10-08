@@ -393,7 +393,7 @@
 
   /* ===== Табло в стиле футбольного LED-экрана ===== */
   #messageBoard {
-    top: 250px; width: min(380px, calc(100% - 24px)); height: 52px;
+    top: 205px; width: min(380px, calc(100% - 24px)); height: 52px;
     padding: 5px; display:flex; align-items:stretch; gap:5px;
     background:#25282c; border:3px solid #0e1013; border-radius:10px;
     box-shadow: 0 0 0 2px #d9dde0, 0 0 0 5px #11151a, 0 5px 0 #080a0c;
@@ -624,7 +624,7 @@ function drawStadium() {
   /* Небо */
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H, fill: 'url(#skyGrad)' }));
   svgEl.append(el('rect', { x: 0, y: 0, width: W, height: H * 0.4, fill: 'url(#glow)' }));
-  svgEl.append(el('rect', { x: 0, y: H * 0.42 - 50, width: W, height: 18, fill: PALETTE.tierRear[0], opacity: 0.7 }));
+  svgEl.append(el('rect', { x: 0, y: H * 0.42 - 80, width: W, height: 18, fill: PALETTE.tierRear[0], opacity: 0.7 }));
   // Ровная поднятая граница городского фона.
   svgEl.append(el('rect', { x:0, y:H * 0.42 - 50, width:W, height:18, fill:PALETTE.tierRear[1], opacity:0.9 }));
   const cloud = el('g', { class:'cloud-pixel', fill: PALETTE.wallTop, opacity: 0.22 });
